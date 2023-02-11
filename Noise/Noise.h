@@ -7,13 +7,13 @@ namespace Noise
 	class Perlin
 	{
 	public:
-		// Returns noise value for given position x
+		// Returns noise value for given position x, noise will be in range [-1, 1]
 		static float calculateNoise(float x);
 
-		// Returns noise value for given position x, y
+		// Returns noise value for given position x, y, noise will be in range [-1, 1]
 		static float calculateNoise(float x, float y);
 
-		// Returns noise value for given position x,y,z
+		// Returns noise value for given position x,y,z, noise will be in range [-1, 1]
 		static float calculateNoise(float x, float y, float z);
 
 	private:
