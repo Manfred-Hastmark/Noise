@@ -59,14 +59,14 @@ namespace Noise
 		float v = fade(y);
 
 		//Hash coordinates for each of the four corners
-		int A = p[X    ] + Y & 255;
+		int A = p[X] + Y & 255;
 		int B = p[X + 1] + Y & 255;
 
 		//Add blended results from 4 corners of square
-		return lerp(v, lerp(u,	grad(p[A], x, y),
-								grad(p[B], x - 1, y)),
-					   lerp(u,  grad(p[A + 1], x, y - 1),
-								grad(p[B + 1], x - 1, y - 1)));
+		return lerp(v, lerp(u, grad(p[A], x, y),
+			grad(p[B], x - 1, y)),
+			lerp(u, grad(p[A + 1], x, y - 1),
+				grad(p[B + 1], x - 1, y - 1)));
 	}
 
 	float Perlin::calculateNoise(float x, float y, float z)
@@ -87,21 +87,21 @@ namespace Noise
 		float w = fade(z);
 
 		//Hash coordinates of each of the 8 cube corners
-		int A  = p[X    ] + Y & 255;
-		int B  = p[X + 1] + Y & 255;
-		int AA = p[A    ] + Z & 255;
+		int A = p[X] + Y & 255;
+		int B = p[X + 1] + Y & 255;
+		int AA = p[A] + Z & 255;
 		int AB = p[A + 1] + Z & 255;
-		int BA = p[B    ] + Z & 255;
+		int BA = p[B] + Z & 255;
 		int BB = p[B + 1] + Z & 255;
 
-		return lerp(w, lerp(v, lerp(u,	grad(p[AA], x, y, z),                // Add
-										grad(p[BA], x - 1, y, z)),           // blended
-								lerp(u, grad(p[AB], x, y - 1, z),            // results
-										grad(p[BB], x - 1, y - 1, z))),      // from 8
-						lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),        // corners
-										grad(p[BA + 1], x - 1, y, z - 1)),   // of cube
-								lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
-										grad(p[BB + 1], x - 1, y - 1, z - 1))));
+		return lerp(w, lerp(v, lerp(u, grad(p[AA], x, y, z),                // Add
+			grad(p[BA], x - 1, y, z)),           // blended
+			lerp(u, grad(p[AB], x, y - 1, z),            // results
+				grad(p[BB], x - 1, y - 1, z))),      // from 8
+			lerp(v, lerp(u, grad(p[AA + 1], x, y, z - 1),        // corners
+				grad(p[BA + 1], x - 1, y, z - 1)),   // of cube
+				lerp(u, grad(p[AB + 1], x, y - 1, z - 1),
+					grad(p[BB + 1], x - 1, y - 1, z - 1))));
 	}
 
 	float Perlin::lerp(float t, float a, float b)
@@ -114,7 +114,7 @@ namespace Noise
 		return t * t * t * (t * (t * 6 - 15) + 10);
 	}
 
-	float Perlin::grad(int hash, float x) 
+	float Perlin::grad(int hash, float x)
 	{
 		return (hash & 1) == 0 ? x : -x;	//Let LSB represent direction vector -1 or 1
 	}
@@ -122,7 +122,7 @@ namespace Noise
 	float Perlin::grad(int hash, float x, float y)
 	{																	//Let bit0 represent direction vectors (1, 0) and (-1, 0)
 		return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);	//Let bit1 represent direction vectors (0, 1) and (0, -1)
-	}																	
+	}
 
 	float Perlin::grad(int hash, float x, float y, float z)
 	{

@@ -1,9 +1,8 @@
 // test.cpp
 
-#include <SDL.h>
+#include "SDL.h"
 
 #include "Noise.h"
-
 
 
 int main(int argc, char* argv[])
