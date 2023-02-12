@@ -8,8 +8,10 @@
 // Perlin noise method is based on original implementation by Ken Perlin
 // https://mrl.cs.nyu.edu/~perlin/noise/
 //
+// Simplex noise method is based on implementation by Stefan Gustavsson
+// https://weber.itn.liu.se/~stegu/simplexnoise/simplexnoise.pdf
+//
 
-#include <cmath>
 #include "Noise.h"
 
 static const int p[512] = { 151,160,137,91,90,15,
@@ -29,6 +31,8 @@ static const int p[512] = { 151,160,137,91,90,15,
 
 namespace Noise
 {
+	using namespace Details;
+
 	float Perlin::calculateNoise(float x)
 	{
 		//Find unit interval that contains x
@@ -104,27 +108,99 @@ namespace Noise
 					grad(p[BB + 1], x - 1, y - 1, z - 1))));
 	}
 
-	float Perlin::lerp(float t, float a, float b)
+	float Simplex::calculateNoise(float x) { return 0; }
+
+	float Simplex::calculateNoise(float x, float y) 
+	{
+		float n0, n1, n2; // Noise contributions from the three corners
+
+		// Skew the input to the simplex grid and calculate which cell we are in (i, j)
+		const float f2 = 0.5 * (sqrt(3.0) - 1.0);
+		float s = (x + y) * f2; 
+		int i = floor(x + s);	
+		int j = floor(y + s);
+
+		const float g2 = (3.0 - sqrt(3.0)) / 6.0;
+		float t = (i + j) * g2;
+		float X0 = i - t; // Unskew the cell origin back to (x,y) space
+		float Y0 = j - t;
+		float x0 = x - X0; // The x,y distances from the cell origin
+		float y0 = y - Y0;
+
+		// Determine which simplex we are in (upper or lower)
+		int i1, j1;
+		if (x0 > y0)
+		{
+			i1 = 1;	// lower triangle, XY order: (0,0)->(1,0)->(1,1)
+			j1 = 0;
+		}
+		else
+		{
+			i1 = 0;	// upper triangle, YX order: (0,0)->(0,1)->(1,1)
+			j1 = 1;
+		}
+
+		float x1 = x0 - i1 + g2; // Offsets for middle corner in (x,y) unskewed coords
+		float y1 = y0 - j1 + g2;
+		float x2 = x0 - 1.0 + 2.0 * g2; // Offsets for last corner in (x,y) unskewed coords
+		float y2 = y0 - 1.0 + 2.0 * g2;
+
+		// Work out the hashed gradient indices of the three simplex corners
+		int ii = i & 255;
+		int jj = j & 255;
+		int gi0 = p[ii + p[jj]] & 255;
+		int gi1 = p[ii + i1 + p[jj + j1]] & 255;
+		int gi2 = p[ii + 1 + p[jj + 1]] & 255;
+
+		// Calculate the contribution from the three corners
+		float t0 = 0.5 - x0 * x0 - y0 * y0;
+		if (t0 < 0) n0 = 0.0;
+		else {
+			t0 *= t0;
+			n0 = t0 * t0 * grad(gi0, x0, y0); // (x,y) of grad3 used for 2D gradient
+		}
+
+		float t1 = 0.5 - x1 * x1 - y1 * y1;
+		if (t1 < 0) n1 = 0.0;
+		else {
+			t1 *= t1;
+			n1 = t1 * t1 * grad(gi1, x1, y1);
+		}
+
+		double t2 = 0.5 - x2 * x2 - y2 * y2;
+		if (t2 < 0) n2 = 0.0;
+		else {
+			t2 *= t2;
+			n2 = t2 * t2 * grad(gi2, x2, y2);
+		}
+
+		return 70.0 * (n0 + n1 + n2);
+	}
+
+	float Simplex::calculateNoise(float x, float y, float z) { return 0; }
+
+	float Details::lerp(float t, float a, float b)
 	{
 		return a + t * (b - a);
 	}
 
-	float Perlin::fade(float t)
+	float Details::fade(float t)
 	{
 		return t * t * t * (t * (t * 6 - 15) + 10);
 	}
 
-	float Perlin::grad(int hash, float x)
+	float Details::grad(int hash, float x)
 	{
 		return (hash & 1) == 0 ? x : -x;	//Let LSB represent direction vector -1 or 1
 	}
 
-	float Perlin::grad(int hash, float x, float y)
+	//TODO: Improve the hash of this function to include the 8 recomended vectors
+	float Details::grad(int hash, float x, float y)
 	{																	//Let bit0 represent direction vectors (1, 0) and (-1, 0)
 		return ((hash & 1) == 0 ? x : -x) + ((hash & 2) == 0 ? y : -y);	//Let bit1 represent direction vectors (0, 1) and (0, -1)
 	}
 
-	float Perlin::grad(int hash, float x, float y, float z)
+	float Details::grad(int hash, float x, float y, float z)
 	{
 		int h = hash & 15;                      // Convert lo 4 bits of hash code
 		float u = h < 8 ? x : y;                 // into 12 gradient vectors.
