@@ -7,3 +7,5 @@ This project implements a library for 1D-3D Noise, thus far [Perlin noise](https
 ![](https://github.com/Manfred-Hastmark/Noise/blob/master/perlinNoise1D.png?raw=true)
 
 ![](https://github.com/Manfred-Hastmark/Noise/blob/master/perlinNoise2D.png?raw=true)
+
+![](https://github.com/Manfred-Hastmark/Noise/blob/master/perlin3D.png?raw=true)
