@@ -125,12 +125,11 @@ void show2dPerlinNoise()
 
 void show3dPerlinNoise()
 {
-	const int noParticles = 10000;
-	int FPS;
-	float frequency;
-	int r, g, b;
+	const int noParticles = 15000;
+	float frequency, maxVel, strength, direction;
+	int FPS, r, g, b, opacity;
 
-	getInput(&FPS, &frequency, &r, &g, &b);
+	getInput(&FPS, &frequency, &strength, &direction, &maxVel, &r, &g, &b, &opacity);
 
 	//Allocate particles array on the heap
 	Particle* particles = new Particle[noParticles];
@@ -138,14 +137,14 @@ void show3dPerlinNoise()
 	SDL_Init(SDL_INIT_EVERYTHING);
 	SDL_Window* window = SDL_CreateWindow("title", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_WINDOW_SHOWN);
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, 0);
-	SDL_SetRenderDrawColor(renderer, r, g, b, 1);
+	SDL_SetRenderDrawColor(renderer, r, g, b, opacity);
 
 	SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
 	
 	//initialize the particles
 	for (int i = 0; i < noParticles; i++)
 	{
-		particles[i] = *(new Particle(WINDOW_WIDTH, WINDOW_HEIGHT, 10));
+		particles[i] = *(new Particle(WINDOW_WIDTH, WINDOW_HEIGHT, maxVel));
 	}
 
 
@@ -157,7 +156,12 @@ void show3dPerlinNoise()
 		if(SDL_PollEvent(&e) && e.type == SDL_QUIT)
 			break;
 
+		//Clear window
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+
 		//Update and redraw each point
+		SDL_SetRenderDrawColor(renderer, r, g, b, opacity);
 		for (int i = 0; i < noParticles; i++)
 		{
 			particles[i].update();
@@ -165,8 +169,8 @@ void show3dPerlinNoise()
 			float xRel = (particles[i].x * frequency) / WINDOW_WIDTH;
 			float yRel = (particles[i].y * frequency) / WINDOW_HEIGHT;
 
-			float angle = (Noise::Perlin::calculateNoise(xRel, yRel, SDL_GetTicks() * 0.001) + 1) * M_PI;
-			particles[i].addForce(1, angle);
+			float angle = (Noise::Perlin::calculateNoise(xRel, yRel, SDL_GetTicks() * 0.001) + direction) * M_PI;
+			particles[i].addForce(strength, angle);
 
 			SDL_RenderDrawLine(renderer, particles[i].x, particles[i].y, particles[i].prevX, particles[i].prevY);
 		}
@@ -182,7 +186,7 @@ void show3dPerlinNoise()
 	SDL_Quit();
 }
 
-void getInput(int* FPS, float* frequency, int* r, int* g, int* b)
+void getInput(int* FPS, float* frequency, float* strength, float* direction, float* maxVel, int* r, int* g, int* b, int* opacity)
 {
 	//std::cout << "Please enter number of particles to be used: ";
 	//std::cin >> *noParticles;
@@ -193,6 +197,16 @@ void getInput(int* FPS, float* frequency, int* r, int* g, int* b)
 	std::cout << "Please enter the freuqency of the noise to be used: ";
 	std::cin >> *frequency;
 
+	std::cout << "Please enter the strength of the forcefield: ";
+	std::cin >> *strength;
+
+	std::cout << "Please enter the general direction of the forcefield (0-360): ";
+	std::cin >> *direction;
+	*direction /= 180;
+
+	std::cout << "Please enter the max velocity of the particles: ";
+	std::cin >> *maxVel;
+
 	std::cout << "Please enter how much red should be used (0-255): ";
 	std::cin >> *r;
 
@@ -201,4 +215,7 @@ void getInput(int* FPS, float* frequency, int* r, int* g, int* b)
 
 	std::cout << "Please enter how much blue should be used (0-255): ";
 	std::cin >> *b;
+
+	std::cout << "Please enter the opacity of the particles (0-255): ";
+	std::cin >> *opacity;
 }
